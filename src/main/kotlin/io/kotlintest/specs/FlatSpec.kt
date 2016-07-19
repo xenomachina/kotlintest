@@ -4,6 +4,9 @@ import io.kotlintest.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+@Deprecated(
+    "It is essentially the same as StringSpec, but more complicated.",
+    replaceWith = ReplaceWith("StringSpec"))
 abstract class FlatSpec : TestBase() {
 
   protected val suites: MutableMap<String, TestSuite> = HashMap()

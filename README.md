@@ -54,6 +54,8 @@ class StringSpecExample : StringSpec() {
 
 ### Flat Spec
 
+`FlatSpec` is deprecated. Use StringSpec instead.
+
 `FlatSpec` offers the keywords `should`, and `with`, and allows those to be used inline, as such:
 
 ```kotlin
