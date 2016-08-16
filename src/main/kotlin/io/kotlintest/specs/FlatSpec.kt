@@ -16,8 +16,10 @@ abstract class FlatSpec : TestBase() {
                     timeout: Duration = Duration.unlimited,
                     threads: Int = 1,
                     tag: String? = null,
-                    tags: List<String> = listOf()): Pair<String, TestConfig> =
-      Pair(this, TestConfig(ignored, invocations, timeout, threads, tags))
+                    tags: List<String> = listOf()): Pair<String, TestConfig> {
+    val mergedTags = if (tag != null) tags + tag else tags
+    return Pair(this, TestConfig(ignored, invocations, timeout, threads, mergedTags))
+  }
 
   @Deprecated(
           message = "use overload instead",

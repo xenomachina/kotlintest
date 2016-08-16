@@ -12,6 +12,7 @@ class FlatSpecTest : FlatSpec() {
       stack.pop()
       stack.size() shouldBe 1
     }
+
     "ListStack.peek" should "should leave the stack unmodified" {
       val stack = ListStack<String>()
       stack.push("hello")
@@ -20,7 +21,13 @@ class FlatSpecTest : FlatSpec() {
       stack.peek() shouldBe "world"
       stack.size() shouldBe 2
     }
+
     "FlatSpec".config(invocations = 3) should "support config syntax" {
+    }
+
+    val taggedTest = "config".config(tags = listOf("tagA"), tag = "tagB")
+    "config" should "merge tags" {
+      taggedTest.second.tags shouldEqual listOf("tagA", "tagB")
     }
   }
 }
