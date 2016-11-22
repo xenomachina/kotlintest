@@ -1,10 +1,13 @@
 package io.kotlintest.specs
 
+import io.kotlintest.KTestJUnitRunner
 import io.kotlintest.TestBase
 import io.kotlintest.TestCase
 import io.kotlintest.TestSuite
+import org.junit.runner.RunWith
 import java.util.*
 
+@RunWith(KTestJUnitRunner::class)
 abstract class BehaviorSpec : TestBase() {
 
   var current = root
