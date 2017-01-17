@@ -1,6 +1,8 @@
 package io.kotlintest.properties
 
-abstract class PropertyTesting {
+import io.kotlintest.matchers.Matchers
+
+abstract class PropertyTesting : Matchers() {
 
   inline fun <reified A> forAll(noinline fn: (a: A) -> Boolean): Unit {
     forAll(Gen.default<A>(), fn)

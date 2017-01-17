@@ -4,7 +4,7 @@ import io.kotlintest.Inspectors
 
 interface Keyword
 
-interface Matchers : StringMatchers,
+abstract class Matchers : StringMatchers,
     CollectionMatchers,
     DoubleMatchers,
     IntMatchers,
@@ -14,13 +14,24 @@ interface Matchers : StringMatchers,
     TypeMatchers,
     Inspectors {
 
-  fun <T> equalityMatcher(expected: T) = object : Matcher<T> {
-    override fun test(value: T): Result = Result(this == value, "$expected should equal $value")
+  protected val builders = mutableListOf<Assertion<out Any>>()
+
+  fun <T> equalityMatcher(expected: T?) = object : Matcher<T?> {
+    override fun test(value: T?): Result {
+      if (value == null && expected != null)
+        return Result(false, "$expected should equal $value")
+      if (value != null && expected == null)
+        return Result(false, value.toString() + "$expected should equal $value")
+      if (value != expected)
+        return Result(false, value.toString() + "$expected should equal $value")
+      else
+        return Result(true, "$expected should equal $value")
+    }
   }
 
   fun fail(msg: String): Nothing = throw AssertionError(msg)
 
-  infix fun Double.shouldBe(other: Double): Unit = should(ToleranceMatcher(other, 0.0))
+  infix fun Double.shouldBe(other: Double): Assertion<Double> = should(ToleranceMatcher(other, 0.0))
 
   infix fun String.shouldBe(other: String) {
     if (this != other) {
@@ -60,39 +71,38 @@ interface Matchers : StringMatchers,
       throw AssertionError("Array not equal: $this != $other")
   }
 
-  infix fun <T> T.shouldBe(any: Any?): Unit = shouldEqual(any)
-  infix fun <T> T.shouldEqual(any: Any?): Unit {
-    when (any) {
-      is Matcher<*> -> should(any as Matcher<T>)
-      else -> {
-        if (this == null && any != null)
-          throw AssertionError(this.toString() + " did not equal $any")
-        if (this != null && any == null)
-          throw AssertionError(this.toString() + " did not equal $any")
-        if (this != any)
-          throw AssertionError(this.toString() + " did not equal $any")
-      }
-    }
+  fun <T> nullMatcher() = object : Matcher<T> {
+    override fun test(value: T): Result = Result(value == null, "$value should be null")
   }
 
   infix fun <T> T.should(matcher: (T) -> Unit): Unit = matcher(this)
 
-  infix fun <T> T.should(matcher: Matcher<T>): Unit {
-    val result = matcher.test(this)
-    if (!result.passed)
-      throw AssertionError(result.message)
+  infix fun <T> T.shouldBe(matcher: Matcher<T>?): Assertion<T> = should(matcher)
+  infix fun <T> T.should(matcher: Matcher<T>?): Assertion<T> {
+    val builder = Assertion(this, matcher ?: nullMatcher())
+    builders.plus(builder)
+    return builder
   }
 
-  infix fun <T> T.shouldNotBe(any: Any?): Unit {
-    when (any) {
-      is Matcher<*> -> shouldNot(any as Matcher<T>)
-      else -> shouldNot(equalityMatcher(this))
+  infix fun <T> T.shouldNotBe(matcher: Matcher<T>): Assertion<T> = shouldNot(matcher)
+  infix fun <T> T.shouldNot(matcher: Matcher<T>): Assertion<T> {
+    val builder = Assertion(this, matcher)
+    builders.plus(builder)
+    return builder
+  }
+
+  infix fun <T> T.shouldBe(any: T?): Assertion<T> = shouldEqual(any)
+  infix fun <T> T.shouldEqual(any: T?): Assertion<T> {
+    return when (any) {
+      is Matcher<*> -> should(any as Matcher<T>)
+      else -> should(equalityMatcher(any))
     }
   }
 
-  infix fun <T> T.shouldNot(matcher: Matcher<T>): Unit {
-    val result = matcher.test(this)
-    if (result.passed)
-      throw AssertionError("Test passed which should have failed: " + result.message)
+  infix fun <T> T.shouldNotBe(any: T?): Assertion<T> {
+    return when (any) {
+      is Matcher<*> -> shouldNot(any as Matcher<T>)
+      else -> shouldNot(equalityMatcher(this))
+    }
   }
 }
